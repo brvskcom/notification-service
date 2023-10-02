@@ -1,11 +1,10 @@
 package com.brvsk.notificationservice.kafka;
 
-import com.brvsk.commons.event.MailNotificationType;
 import com.brvsk.commons.event.OrderNotificationMessage;
-import com.brvsk.notificationservice.mail.MailSender;
-import com.brvsk.notificationservice.notification.Notification;
-import com.brvsk.notificationservice.notification.NotificationRepository;
-import com.brvsk.notificationservice.notification.NotificationType;
+import com.brvsk.notificationservice.notification.NotificationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -17,21 +16,21 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class KafkaListeners {
 
-    private final MailSender mailSender;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "notificationTopic", groupId = "mailNotification")
-    void mailNotificationListener(ConsumerRecord<String, OrderNotificationMessage> record) {
+    @KafkaListener(topics = "notificationTopic", groupId = "groupId")
+    void mailNotificationListener(ConsumerRecord<String, OrderNotificationMessage> record) throws JsonProcessingException {
 
-        OrderNotificationMessage message = record.value();
-        String userEmail = message.userEmail();
-        String orderTrackingNumber = message.orderTrackingNumber();
-        MailNotificationType mailNotificationType = MailNotificationType.valueOf(message.mailNotificationTypeString());
+        JsonNode jsonNode = objectMapper.readTree(String.valueOf(record.value()));
+        String userEmail = jsonNode.get("userEmail").asText();
+        String orderTrackingNumber = jsonNode.get("orderTrackingNumber").asText();
+        String mailNotificationTypeString = jsonNode.get("mailNotificationTypeString").asText();
 
-        mailSender.send(userEmail, mailNotificationType, orderTrackingNumber);
+        OrderNotificationMessage orderNotificationMessage = new OrderNotificationMessage(userEmail, orderTrackingNumber, mailNotificationTypeString);
 
-        Notification notification = new Notification(userEmail,orderTrackingNumber, NotificationType.MAIL);
-        notificationRepository.save(notification);
+        notificationService.sendMailNotification(orderNotificationMessage);
 
     }
+
 }

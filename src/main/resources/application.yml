@@ -11,6 +11,22 @@ spring:
       group-id: notificationId
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: devpurposesonly@gmail.com
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          ssl:
+            trust: "*"
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
 eureka:
   client:
     service-url:

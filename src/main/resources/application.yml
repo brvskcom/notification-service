@@ -3,7 +3,7 @@ server:
 spring:
   datasource:
     password: password
-    url: jdbc:postgresql://localhost:5432/order-service
+    url: jdbc:postgresql://localhost:5432/notification-service
     username: admin
   jpa:
     hibernate:

@@ -1,16 +1,22 @@
 server:
   port: 8083
 spring:
+  datasource:
+    password: password
+    url: jdbc:postgresql://localhost:5432/order-service
+    username: admin
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
   application:
     name: notification-service
   kafka:
     bootstrap-servers: localhost:9092
-    template:
-      default-topic: notificationTopic
-    consumer:
-      group-id: notificationId
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
   mail:
     host: smtp.gmail.com
     port: 587

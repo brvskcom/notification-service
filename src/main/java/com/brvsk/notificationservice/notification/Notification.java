@@ -35,7 +35,7 @@ public class Notification {
     )
     private Long id;
 
-    private String userEmail;
+    private String toUser;
 
     private String orderTrackingNumber;
 
@@ -45,8 +45,8 @@ public class Notification {
     @CreationTimestamp
     private LocalDateTime localDateTime;
 
-    public Notification(String userEmail, String orderTrackingNumber, NotificationType notificationType) {
-        this.userEmail = userEmail;
+    public Notification(String toUser, String orderTrackingNumber, NotificationType notificationType) {
+        this.toUser = toUser;
         this.orderTrackingNumber = orderTrackingNumber;
         this.notificationType = notificationType;
     }

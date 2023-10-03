@@ -1,6 +1,7 @@
 package com.brvsk.notificationservice.kafka;
 
 import com.brvsk.commons.event.OrderNotificationMessage;
+import com.brvsk.commons.event.OrderSMSMessage;
 import com.brvsk.notificationservice.notification.NotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,7 +31,18 @@ public class KafkaListeners {
         OrderNotificationMessage orderNotificationMessage = new OrderNotificationMessage(userEmail, orderTrackingNumber, mailNotificationTypeString);
 
         notificationService.sendMailNotification(orderNotificationMessage);
+    }
 
+    @KafkaListener(topics = "smsNotificationTopic", groupId = "sms")
+    void smsNotificationListener(ConsumerRecord<String, OrderSMSMessage> record) throws JsonProcessingException {
+
+        JsonNode jsonNode = objectMapper.readTree(String.valueOf(record.value()));
+        String phoneNumber = jsonNode.get("phoneNumber").asText();
+        String orderTrackingNumber = jsonNode.get("orderTrackingNumber").asText();
+        String orderSmsTypeString = jsonNode.get("orderSmsTypeString").asText();
+
+        OrderSMSMessage orderSMSMessage = new OrderSMSMessage(phoneNumber, orderTrackingNumber, orderSmsTypeString);
+        notificationService.sendSMSNotification(orderSMSMessage);
     }
 
 }

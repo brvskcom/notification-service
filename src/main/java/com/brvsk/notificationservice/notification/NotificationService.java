@@ -1,7 +1,6 @@
 package com.brvsk.notificationservice.notification;
 
-import com.brvsk.commons.event.MailNotificationType;
-import com.brvsk.commons.event.OrderNotificationMessage;
+import com.brvsk.commons.event.OrderMailMessage;
 import com.brvsk.commons.event.OrderSMSMessage;
 import com.brvsk.notificationservice.mail.MailSender;
 import com.brvsk.notificationservice.sms.SMSSender;
@@ -16,18 +15,12 @@ public class NotificationService {
     private final SMSSender smsSender;
     private final NotificationRepository notificationRepository;
 
-    public void sendMailNotification(OrderNotificationMessage orderNotificationMessage){
-
-        String userEmail = orderNotificationMessage.getUserEmail();
-        String orderTrackingNumber = orderNotificationMessage.getOrderTrackingNumber();
-        String mailNotificationTypeString = orderNotificationMessage.getMailNotificationTypeString();
-        MailNotificationType mailNotificationType = MailNotificationType.valueOf(mailNotificationTypeString);
-
-        mailSender.send(userEmail, mailNotificationType, orderTrackingNumber);
+    public void sendMailNotification(OrderMailMessage orderMailMessage){
+        mailSender.send(orderMailMessage);
 
         Notification notification = new Notification(
-                userEmail,
-                orderTrackingNumber,
+                orderMailMessage.getUserEmail(),
+                orderMailMessage.getOrderTrackingNumber(),
                 NotificationType.MAIL
         );
         notificationRepository.save(notification);

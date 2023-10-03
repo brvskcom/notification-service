@@ -1,13 +1,14 @@
 package com.brvsk.notificationservice.mail;
 
-import com.brvsk.commons.event.MailNotificationType;
+import com.brvsk.commons.event.OrderMailMessage;
+import com.brvsk.commons.event.OrderMailType;
 import com.brvsk.notificationservice.notification.NotificationTypeNotValid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -20,20 +21,25 @@ public class MailService implements MailSender{
 
     @Override
     @Async
-    public void send(String to, MailNotificationType mailNotificationType, String orderTrackingNumber) {
+    public void send(OrderMailMessage orderMailMessage) {
+        String userEmail = orderMailMessage.getUserEmail();
+        String orderTrackingNumber = orderMailMessage.getOrderTrackingNumber();
+        String mailNotificationTypeString = orderMailMessage.getOrderMailTypeString();
+        OrderMailType orderMailType = OrderMailType.valueOf(mailNotificationTypeString);
+
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setTo(to);
+        simpleMailMessage.setTo(userEmail);
         simpleMailMessage.setFrom(from);
-        simpleMailMessage.setSubject(mailNotificationType.getMailTitle());
-        simpleMailMessage.setText(buildEmail(mailNotificationType, orderTrackingNumber));
+        simpleMailMessage.setSubject(orderMailType.getMailTitle());
+        simpleMailMessage.setText(buildEmail(orderMailType, orderTrackingNumber));
 
         javaMailSender.send(simpleMailMessage);
     }
 
 
 
-    private String buildEmail(MailNotificationType mailNotificationType, String orderTrackingNumber){
-        switch (mailNotificationType){
+    private String buildEmail(OrderMailType orderMailType, String orderTrackingNumber){
+        switch (orderMailType){
             case ORDER_PLACED -> {
                 return buildOrderPlacedEmail(orderTrackingNumber);
             }

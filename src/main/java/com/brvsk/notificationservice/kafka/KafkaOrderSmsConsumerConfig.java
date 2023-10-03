@@ -1,8 +1,6 @@
 package com.brvsk.notificationservice.kafka;
 
-import com.brvsk.commons.event.OrderEvent;
-import com.brvsk.commons.event.OrderNotificationMessage;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.brvsk.commons.event.OrderSMSMessage;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +20,7 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class KafkaConsumerConfig {
+public class KafkaOrderSmsConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -30,16 +28,16 @@ public class KafkaConsumerConfig {
     public Map<String, Object> consumerConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "mailNotification");
-//        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-//        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-//        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
-//        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "sms");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, JsonDeserializer.class);
+        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
         return props;
     }
     @Bean
-    public ConsumerFactory<String, OrderNotificationMessage> consumerFactory() {
-        JsonDeserializer<OrderNotificationMessage> jsonDeserializer = new JsonDeserializer<>();
+    public ConsumerFactory<String, OrderSMSMessage> consumerOrderSMSFactory() {
+        JsonDeserializer<OrderSMSMessage> jsonDeserializer = new JsonDeserializer<>();
         jsonDeserializer.addTrustedPackages("com.brvsk.*");
         return new DefaultKafkaConsumerFactory<>(
                 consumerConfig(),
@@ -50,14 +48,13 @@ public class KafkaConsumerConfig {
 
     @Bean
     public KafkaListenerContainerFactory<
-            ConcurrentMessageListenerContainer<String, OrderNotificationMessage>> factory(
-            ConsumerFactory<String, OrderNotificationMessage> consumerFactory
+            ConcurrentMessageListenerContainer<String, OrderSMSMessage>> OrderSMSFactory(
+            ConsumerFactory<String, OrderSMSMessage> consumerFactory
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, OrderNotificationMessage> factory =
+        ConcurrentKafkaListenerContainerFactory<String, OrderSMSMessage> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         return factory;
     }
-
 
 }

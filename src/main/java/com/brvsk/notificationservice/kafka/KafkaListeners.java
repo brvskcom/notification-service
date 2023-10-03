@@ -1,6 +1,6 @@
 package com.brvsk.notificationservice.kafka;
 
-import com.brvsk.commons.event.OrderNotificationMessage;
+import com.brvsk.commons.event.OrderMailMessage;
 import com.brvsk.commons.event.OrderSMSMessage;
 import com.brvsk.notificationservice.notification.NotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,31 +18,23 @@ import org.springframework.stereotype.Component;
 public class KafkaListeners {
 
     private final NotificationService notificationService;
-    private final ObjectMapper objectMapper;
+    private final KafkaMessageMapper kafkaMessageMapper;
 
-    @KafkaListener(topics = "notificationTopic", groupId = "groupId")
-    void mailNotificationListener(ConsumerRecord<String, OrderNotificationMessage> record) throws JsonProcessingException {
+    @KafkaListener(topics = "mailNotificationTopic", groupId = "mail")
+    void mailNotificationListener(ConsumerRecord<String, OrderMailMessage> record) throws JsonProcessingException {
 
-        JsonNode jsonNode = objectMapper.readTree(String.valueOf(record.value()));
-        String userEmail = jsonNode.get("userEmail").asText();
-        String orderTrackingNumber = jsonNode.get("orderTrackingNumber").asText();
-        String mailNotificationTypeString = jsonNode.get("mailNotificationTypeString").asText();
+        OrderMailMessage orderMailMessage = kafkaMessageMapper.orderMailMessageMapper(record);
 
-        OrderNotificationMessage orderNotificationMessage = new OrderNotificationMessage(userEmail, orderTrackingNumber, mailNotificationTypeString);
-
-        notificationService.sendMailNotification(orderNotificationMessage);
+        notificationService.sendMailNotification(orderMailMessage);
     }
 
     @KafkaListener(topics = "smsNotificationTopic", groupId = "sms")
     void smsNotificationListener(ConsumerRecord<String, OrderSMSMessage> record) throws JsonProcessingException {
 
-        JsonNode jsonNode = objectMapper.readTree(String.valueOf(record.value()));
-        String phoneNumber = jsonNode.get("phoneNumber").asText();
-        String orderTrackingNumber = jsonNode.get("orderTrackingNumber").asText();
-        String orderSmsTypeString = jsonNode.get("orderSmsTypeString").asText();
+        OrderSMSMessage orderSMSMessage = kafkaMessageMapper.orderSMSMessageMapper(record);
 
-        OrderSMSMessage orderSMSMessage = new OrderSMSMessage(phoneNumber, orderTrackingNumber, orderSmsTypeString);
         notificationService.sendSMSNotification(orderSMSMessage);
     }
+
 
 }
